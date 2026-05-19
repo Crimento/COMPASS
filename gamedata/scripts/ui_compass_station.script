@@ -1,0 +1,245 @@
+local gc = game.translate_string
+local MAX_DESTINATIONS = 5
+local COLOR_LEVEL_READY = GetARGB(255, 100, 145, 255)
+local COLOR_SMART_READY = GetARGB(255, 235, 235, 235)
+local COLOR_CALIBRATED = GetARGB(255, 90, 220, 120)
+local COLOR_CALIBRATING = GetARGB(255, 255, 170, 70)
+local COLOR_RISK = GetARGB(255, 255, 90, 90)
+
+GUI = nil
+
+class "UICompassStation" (CUIScriptWnd)
+
+function UICompassStation:__init() super()
+    self:SetWndRect(Frect():set(0, 0, 1024, 768))
+    self:SetAutoDelete(true)
+
+    self.destinations = {}
+    self.buttons = {}
+    self.level_labels = {}
+    self.smart_labels = {}
+    self.chance_labels = {}
+    self.header_labels = {}
+
+    local xml = CScriptXmlInit()
+    xml:ParseFile("ui_compass_station_dialog.xml")
+
+    self.back = xml:InitFrame("background", self)
+    self.title = xml:InitTextWnd("title", self.back)
+    self.status = xml:InitTextWnd("status", self.back)
+    self.source_calibration = xml:InitTextWnd("source_calibration", self.back)
+    self.header_labels.location = xml:InitTextWnd("txt_header_location", self.back)
+    self.header_labels.sublocation = xml:InitTextWnd("txt_header_sublocation", self.back)
+    self.header_labels.success = xml:InitTextWnd("txt_header_success", self.back)
+
+    for i = 1, MAX_DESTINATIONS do
+        local id = "btn_dest_" .. tostring(i)
+        local btn = xml:Init3tButton(id, self.back)
+        self.buttons[i] = btn
+        self:Register(btn, id)
+
+        self.level_labels[i] = xml:InitTextWnd("txt_dest_level_" .. tostring(i), self.back)
+        self.smart_labels[i] = xml:InitTextWnd("txt_dest_smart_" .. tostring(i), self.back)
+        self.chance_labels[i] = xml:InitTextWnd("txt_dest_chance_" .. tostring(i), self.back)
+    end
+
+    self.btn_close = xml:Init3tButton("btn_close", self.back)
+    self:Register(self.btn_close, "btn_close")
+
+    self:AddCallback("btn_dest_1", ui_events.BUTTON_CLICKED, self.Select1, self)
+    self:AddCallback("btn_dest_2", ui_events.BUTTON_CLICKED, self.Select2, self)
+    self:AddCallback("btn_dest_3", ui_events.BUTTON_CLICKED, self.Select3, self)
+    self:AddCallback("btn_dest_4", ui_events.BUTTON_CLICKED, self.Select4, self)
+    self:AddCallback("btn_dest_5", ui_events.BUTTON_CLICKED, self.Select5, self)
+    self:AddCallback("btn_close", ui_events.BUTTON_CLICKED, self.Close, self)
+end
+
+function UICompassStation:__finalize()
+    GUI = nil
+end
+
+local function set_text(control, text)
+    if not control then
+        return
+    end
+
+    pcall(function() control:SetText(text) end)
+    pcall(function() control:TextItemControl():SetText(text) end)
+end
+
+local function set_visible(control, visible)
+    if not control then
+        return
+    end
+
+    pcall(function() control:Show(visible) end)
+    pcall(function() control:Enable(visible) end)
+end
+
+local function set_label_visible(control, visible)
+    if not control then
+        return
+    end
+
+    pcall(function() control:Show(visible) end)
+    pcall(function() control:Enable(false) end)
+end
+
+local function set_text_color(control, color)
+    if not control or not color then
+        return
+    end
+
+    pcall(function() control:SetTextColor(color) end)
+    pcall(function() control:TextControl():SetTextColor(color) end)
+    pcall(function() control:TextItemControl():SetTextColor(color) end)
+end
+
+local function chance_text(dest)
+    local success = tonumber(dest and dest.success_chance)
+    if not success then
+        return ""
+    end
+
+    return string.format("%d%%", math.floor(success + 0.5))
+end
+
+local function chance_color(dest)
+    local success = tonumber(dest and dest.success_chance) or 0
+    if success >= 80 then
+        return COLOR_CALIBRATED
+    end
+
+    if success >= 50 then
+        return COLOR_CALIBRATING
+    end
+
+    return COLOR_RISK
+end
+
+function UICompassStation:Initialize(source_id)
+    self.source_id = source_id
+    self.destinations = compass.get_destination_options(source_id) or {}
+
+    set_text(self.title, gc("st_compass_station"))
+
+    if #self.destinations == 0 then
+        set_text(self.status, gc("st_compass_no_destinations"))
+    else
+        set_text(self.status, gc("st_compass_select_destination"))
+    end
+
+    set_text(self.header_labels.location, gc("st_compass_header_location"))
+    set_text(self.header_labels.sublocation, gc("st_compass_header_sublocation"))
+    set_text(self.header_labels.success, gc("st_compass_header_success"))
+    set_label_visible(self.header_labels.location, #self.destinations > 0)
+    set_label_visible(self.header_labels.sublocation, #self.destinations > 0)
+    set_label_visible(self.header_labels.success, #self.destinations > 0)
+
+    local source_status = compass.get_station_calibration_status and compass.get_station_calibration_status(source_id) or nil
+    if source_status and source_status.text and source_status.text ~= "" then
+        set_text(self.source_calibration, source_status.text)
+        set_text_color(self.source_calibration, source_status.ready and COLOR_CALIBRATED or COLOR_CALIBRATING)
+        set_label_visible(self.source_calibration, true)
+    else
+        set_text(self.source_calibration, "")
+        set_label_visible(self.source_calibration, false)
+    end
+
+    for i = 1, MAX_DESTINATIONS do
+        local btn = self.buttons[i]
+        local level_label = self.level_labels[i]
+        local smart_label = self.smart_labels[i]
+        local chance_label = self.chance_labels[i]
+        local dest = self.destinations[i]
+
+        if dest then
+            local level_text = tostring(dest.level_label or dest.label or "")
+            local smart_text = tostring(dest.smart_label or "")
+
+            set_text(level_label, level_text)
+            set_text(smart_label, smart_text)
+            set_text(chance_label, chance_text(dest))
+            set_text_color(level_label, dest.calibration_ready == false and COLOR_CALIBRATING or COLOR_LEVEL_READY)
+            set_text_color(smart_label, dest.calibration_ready == false and COLOR_CALIBRATING or COLOR_SMART_READY)
+            set_text_color(chance_label, chance_color(dest))
+            set_visible(btn, true)
+            set_label_visible(level_label, true)
+            set_label_visible(smart_label, smart_text ~= "")
+            set_label_visible(chance_label, true)
+        else
+            set_text(level_label, "")
+            set_text(smart_label, "")
+            set_text(chance_label, "")
+            set_text_color(level_label, COLOR_LEVEL_READY)
+            set_text_color(smart_label, COLOR_SMART_READY)
+            set_text_color(chance_label, COLOR_SMART_READY)
+            set_visible(btn, false)
+            set_label_visible(level_label, false)
+            set_label_visible(smart_label, false)
+            set_label_visible(chance_label, false)
+        end
+    end
+end
+
+function UICompassStation:Select(index)
+    local dest = self.destinations[index]
+    if dest then
+        compass.teleport_to_station(self.source_id, dest.id)
+    end
+
+    self:Close()
+end
+
+function UICompassStation:Select1()
+    self:Select(1)
+end
+
+function UICompassStation:Select2()
+    self:Select(2)
+end
+
+function UICompassStation:Select3()
+    self:Select(3)
+end
+
+function UICompassStation:Select4()
+    self:Select(4)
+end
+
+function UICompassStation:Select5()
+    self:Select(5)
+end
+
+function UICompassStation:OnKeyboard(dik, keyboard_action)
+    local res = CUIScriptWnd.OnKeyboard(self, dik, keyboard_action)
+    if res == false and keyboard_action == ui_events.WINDOW_KEY_PRESSED then
+        if dik == DIK_keys.DIK_ESCAPE then
+            self:Close()
+        end
+    end
+
+    return res
+end
+
+function UICompassStation:Close()
+    if self:IsShown() then
+        self:HideDialog()
+    end
+
+    Unregister_UI("UICompassStation")
+end
+
+function UICompassStation:Open(source_id)
+    self:Initialize(source_id)
+    self:ShowDialog(true)
+    Register_UI("UICompassStation", "ui_sleep_dialog")
+end
+
+function start_dialog(source_id)
+    if GUI == nil then
+        GUI = UICompassStation()
+    end
+
+    GUI:Open(source_id)
+end

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<string_table>
+    <string id="st_compass_station">
+        <text>C.O.M.P.A.S.S Station</text>
+    </string>
+    <string id="st_compass_station_descr">
+        <text>Compact Omnidirectional Modulated Portable Anomalous Slipstreaming Station \n \n
+            After Strelok's raid on the CNPP ended with the destruction of the Monolith Control
+            Center, the path to the heart of the Zone opened. Stalkers were able to scavenge the
+            teleport technology used by Monolithians. Originally powered by the Generators
+            themselves, the technology was reverse-engineered to use a powerful artifact instead.
+            The lack of original blueprints and a stable connection to the noosphere made the
+            device stationary and added a lengthy calibration requirement, but you won't find a
+            faster way to travel around the Zone. \n \n
+            %c[d_red]The device's anomalous origin can sometimes produce unexpected results\n
+        </text>
+    </string>
+    <string id="st_compass_select_destination">
+        <text>Select destination</text>
+    </string>
+    <string id="st_compass_no_destinations">
+        <text>No destinations available</text>
+    </string>
+    <string id="st_compass_calibration_ready">
+        <text>Station calibrated</text>
+    </string>
+    <string id="st_compass_calibration_pending">
+        <text>Calibrating: ready in %s</text>
+    </string>
+    <string id="st_compass_header_location">
+        <text>Region</text>
+    </string>
+    <string id="st_compass_header_sublocation">
+        <text>Location</text>
+    </string>
+    <string id="st_compass_header_success">
+        <text>Success</text>
+    </string>
+    <string id="st_compass_news_title">
+        <text>C.O.M.P.A.S.S</text>
+    </string>
+    <string id="st_compass_news_station_limit">
+        <text>Slipstreaming network is too complex to add more stations</text>
+    </string>
+    <string id="st_compass_news_captured">
+        <text>Location captured: %s</text>
+    </string>
+    <string id="st_compass_news_local_actor_unavailable">
+        <text>Player cannot teleport right now</text>
+    </string>
+    <string id="st_compass_news_signal_misalignment">
+        <text>Failure detected, destination unknown</text>
+    </string>
+    <string id="st_compass_news_shifting_locally">
+        <text>Activating slipstream to %s</text>
+    </string>
+    <string id="st_compass_news_local_failed">
+        <text>Critical local teleport error</text>
+    </string>
+    <string id="st_compass_news_teleport_blocked">
+        <text>Teleport blocked: %s</text>
+    </string>
+    <string id="st_compass_news_change_level_unavailable">
+        <text>Teleport blocked: region transfer unavailable</text>
+    </string>
+    <string id="st_compass_news_activating_station">
+        <text>Activating long-range slipstream to %s</text>
+    </string>
+    <string id="st_compass_news_teleport_failed">
+        <text>Critical long-range teleport error</text>
+    </string>
+    <string id="st_compass_news_destination_unavailable">
+        <text>Error: destination station is not responding</text>
+    </string>
+    <string id="st_compass_news_no_other_stations">
+        <text>No destinations available</text>
+    </string>
+    <string id="st_compass_news_selector_unavailable">
+        <text>Critical error: UI is not available</text>
+    </string>
+    <string id="ui_mcm_menu_compass">
+        <text>C.O.M.P.A.S.S</text>
+    </string>
+    <string id="ui_mcm_compass_failure_chance">
+        <text>Teleport failure chance</text>
+    </string>
+    <string id="ui_mcm_compass_failure_chance_desc">
+        <text>Percentage chance that station travel sends the actor to an unexpected destination.</text>
+    </string>
+    <string id="ui_mcm_compass_calibration_hours">
+        <text>Calibration time</text>
+    </string>
+    <string id="ui_mcm_compass_calibration_hours_desc">
+        <text>In-game hours after placement before a station is fully calibrated.</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_one_failure_chance">
+        <text>One station uncalibrated failure chance</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_one_failure_chance_desc">
+        <text>Failure chance when one of the stations is still calibrating.</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_both_failure_chance">
+        <text>Both stations uncalibrated failure chance</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_both_failure_chance_desc">
+        <text>Failure chance when both stations are still calibrating.</text>
+    </string>
+    <string id="ui_mcm_compass_capture_locations">
+        <text>[DEBUG] Enable location capture</text>
+    </string>
+    <string id="ui_mcm_compass_capture_locations_desc">
+        <text>Enables a maintenance hotkey that writes the actor's current endpoint data to
+            compass.log.</text>
+    </string>
+    <string id="ui_mcm_compass_capture_key">
+        <text>[DEBUG] Location capture key</text>
+    </string>
+    <string id="ui_mcm_compass_capture_key_desc">
+        <text>Hotkey used by the location capture tool when location capture is enabled.</text>
+    </string>
+</string_table>

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<string_table>
+    <string id="st_compass_station">
+        <text>Станция КОМПАС</text>
+    </string>
+    <string id="st_compass_station_descr">
+        <text>Компактная Общенаправленная МежПространственная Аномальная Станция. \n \n После того,
+            как рейд Стрелка на ЧАЭС закончился уничтожением центра управления Монолита, в руки
+            сталкеров смогла попасть технология телепортации, ранее используемая монохромными.
+            Благодаря смекалке местных техников, возможность телепортации удалось воссоздать,
+            запитав ее от редкого артефакта. Из-за отсутствия прямого доступа к Генераторам,
+            установка стала слишком громоздкой для носимого использования, а для
+            стабильной работы необходима дополнительная калибровка. Но даже несмотря на это, вы не
+            найдете более эффективного способа перемещаться по Зоне. \n \n
+            %c[d_red]Аномальное устройство станции может привести к неожиданным эффектам\n
+        </text>
+    </string>
+    <string id="st_compass_select_destination">
+        <text>Пункт назначения</text>
+    </string>
+    <string id="st_compass_no_destinations">
+        <text>Нет доступных станций</text>
+    </string>
+    <string id="st_compass_calibration_ready">
+        <text>Станция откалибрована</text>
+    </string>
+    <string id="st_compass_calibration_pending">
+        <text>Идёт калибровка: готовность через %s</text>
+    </string>
+    <string id="st_compass_header_location">
+        <text>Регион</text>
+    </string>
+    <string id="st_compass_header_sublocation">
+        <text>Локация</text>
+    </string>
+    <string id="st_compass_header_success">
+        <text>Шанс успеха</text>
+    </string>
+    <string id="st_compass_news_title">
+        <text>К.О.М.П.А.С</text>
+    </string>
+    <string id="st_compass_news_station_limit">
+        <text>Портальная сеть перегружена, невозможно подключить дополнительную станцию</text>
+    </string>
+    <string id="st_compass_news_captured">
+        <text>Локация сохранена: %s</text>
+    </string>
+    <string id="st_compass_news_local_actor_unavailable">
+        <text>Ошибка, игрок не может телепортироваться</text>
+    </string>
+    <string id="st_compass_news_signal_misalignment">
+        <text>Аномалия в работе! Пункт назначения неизвестен.</text>
+    </string>
+    <string id="st_compass_news_shifting_locally">
+        <text>Успешная телепортация в %s</text>
+    </string>
+    <string id="st_compass_news_local_failed">
+        <text>Критическая ошибка телепорта</text>
+    </string>
+    <string id="st_compass_news_teleport_blocked">
+        <text>Телепорт недоступен: %s</text>
+    </string>
+    <string id="st_compass_news_change_level_unavailable">
+        <text>Телепорт недоступен: невозможно покинуть регион</text>
+    </string>
+    <string id="st_compass_news_activating_station">
+        <text>Успешная телепортация дальнего действия: %s</text>
+    </string>
+    <string id="st_compass_news_teleport_failed">
+        <text>Критическая ошибка телепорта</text>
+    </string>
+    <string id="st_compass_news_destination_unavailable">
+        <text>Ошибка, станция назначения недоступна</text>
+    </string>
+    <string id="st_compass_news_no_other_stations">
+        <text>Нет доступных станций для телепорта</text>
+    </string>
+    <string id="st_compass_news_selector_unavailable">
+        <text>Критическая ошибка! Не удалось загрузить интерфейс станции</text>
+    </string>
+    <string id="ui_mcm_menu_compass">
+        <text>C.O.M.P.A.S.S</text>
+    </string>
+    <string id="ui_mcm_compass_failure_chance">
+        <text>Шанс сбоя телепорта</text>
+    </string>
+    <string id="ui_mcm_compass_failure_chance_desc">
+        <text>Процентный шанс аномалии во время телепортации.</text>
+    </string>
+    <string id="ui_mcm_compass_calibration_hours">
+        <text>Время на калибровку (ч)</text>
+    </string>
+    <string id="ui_mcm_compass_calibration_hours_desc">
+        <text>Внутриигровое время в часах до того, как станция станет стабильной.</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_one_failure_chance">
+        <text>Шанс аномалии с одной калиброванной станцией</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_one_failure_chance_desc">
+        <text>Шанс на неудачный телепорт, если только одна из станций откалибрована.</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_both_failure_chance">
+        <text>Шанс аномалии с обоими некалиброванными станциями</text>
+    </string>
+    <string id="ui_mcm_compass_uncalibrated_both_failure_chance_desc">
+        <text>Шанс на неудачный телепорте если обе станции еще не завершили калибровку.</text>
+    </string>
+    <string id="ui_mcm_compass_capture_locations">
+        <text>[DEBUG] Сохранение локаций</text>
+    </string>
+    <string id="ui_mcm_compass_capture_locations_desc">
+        <text>Включить кнопку для сохранения координат в compass.log.</text>
+    </string>
+    <string id="ui_mcm_compass_capture_key">
+        <text>[DEBUG] Кнопка сохранения локации</text>
+    </string>
+    <string id="ui_mcm_compass_capture_key_desc">
+        <text>Кнопка для захвата локации в случае если сохранение локаций включено.</text>
+    </string>
+</string_table>

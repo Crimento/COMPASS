@@ -1,0 +1,30 @@
+[itm_compass_station]:af_compass
+class                                   = II_ATTCH
+kind                                    = i_tool
+description                             = st_compass_station_descr
+inv_name                                = st_compass_station
+inv_name_short                          = st_compass_station
+cost                                    = 25000
+inv_weight                              = 8.0
+slot                                    = -1
+use_condition                           = false
+
+use1_functor                            = placeable_furniture.place_item
+use1_action_functor                     = placeable_furniture.func_place_item
+
+placeable_type                          = prop
+placeable_section                       = placeable_compass_station
+
+[placeable_compass_station]:physic_object
+visual                                  = dynamics\el_tehnika\transiver.ogf
+placeable_type                          = prop
+base_rotation                           = 0
+fixed_bones                             = link
+
+script_binding                          = bind_compass_station.init
+item_section                            = itm_compass_station
+ui_on_interaction                       = compass.activate_station
+ui_on_simple_interaction                = compass.activate_station
+
+bounding_box_size                       = 0.450000, 0.350000, 0.300000
+bounding_box_origin                     = 0.000000, 0.175000, 0.000000

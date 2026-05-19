@@ -1,0 +1,2108 @@
+-- Placeable teleport station logic for C.O.M.P.A.S.S.
+-- Keep this file dependency-light: xlibs is used only if GAMMA provides it.
+
+local MOD = "COMPASS"
+local STATION_SECTION = "placeable_compass_station"
+local STATION_ITEM_SECTION = "itm_compass_station"
+local MAX_DESTINATION_BUTTONS = 5
+local MAX_STATIONS = MAX_DESTINATION_BUTTONS + 1
+local ACTIVATION_SUCCESS_SOUND = [[compass\teleport_success]]
+local ACTIVATION_FAILURE_SOUND = [[compass\teleport_fail]]
+local ACTIVATION_SOUND_VOLUME = 2.0
+local NEWS_TITLE = "st_compass_news_title"
+local NEWS_ICON = "ui_inGame2_PD_Iskatel"
+local TELEPORT_EFFECT = "teleport.ppe"
+local TELEPORT_EFFECT_ID = 2006
+local ARRIVAL_EFFECT = "fade_in.ppe"
+local ARRIVAL_EFFECT_ID = 2007
+local TELEPORT_TRAVEL_DELAY = 0.35
+local LOG_DIAGNOSTICS = false
+local TELEPORT_COOLDOWN = 2
+local STATION_LIMIT_DUPLICATE_WINDOW = 10
+local DEFAULT_FAILURE_CHANCE = 10
+local GAME_HOUR_SECONDS = 3600
+local DEFAULT_CALIBRATION_HOURS = 4
+local DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE = 25
+local DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE = 75
+local DEFAULT_CAPTURE_LOCATIONS = false
+local DEFAULT_CAPTURE_KEY = DIK_keys and DIK_keys.DIK_F6 or 64
+
+local FAILURE_DESTINATIONS = {
+    {
+        label = "Cordon",
+        level = "l01_escape",
+        level_id = 2,
+        pos = { -249.9144, -24.8004, -134.4030 },
+        lvid = 12462,
+        gvid = 371,
+    },
+    {
+        label = "Darkscape",
+        level = "k01_darkscape",
+        level_id = 5,
+        pos = { 367.8673, 22.0445, 282.6068 },
+        lvid = 803359,
+        gvid = 1396,
+    },
+    {
+        label = "Darkscape",
+        level = "k01_darkscape",
+        level_id = 5,
+        pos = { 238.2950, -3.7696, 561.0049 },
+        lvid = 654818,
+        gvid = 1093,
+    },
+    {
+        label = "Laboratory X18 (Dark Valley)",
+        level = "l04u_labx18",
+        level_id = 21,
+        pos = { -7.7027, 18.0479, 1.0191 },
+        lvid = 1858,
+        gvid = 3725,
+    },
+    {
+        label = "Dark Valley",
+        level = "l04_darkvalley",
+        level_id = 6,
+        pos = { 37.8660, 4.5268, -84.4265 },
+        lvid = 209157,
+        gvid = 1646,
+    },
+    {
+        label = "Truck Cemetery",
+        level = "k02_trucks_cemetery",
+        level_id = 32,
+        pos = { 107.1031, 21.1224, -143.4037 },
+        lvid = 583848,
+        gvid = 5218,
+    },
+    {
+        label = "Army Warehouses",
+        level = "l07_military",
+        level_id = 9,
+        pos = { -249.0058, -6.4111, 293.3504 },
+        lvid = 117531,
+        gvid = 2165,
+    },
+    {
+        label = "Dead City",
+        level = "l09_deadcity",
+        level_id = 11,
+        pos = { 60.9719, 15.6259, 94.7048 },
+        lvid = 214381,
+        gvid = 2413,
+    },
+    {
+        label = "Dead City",
+        level = "l09_deadcity",
+        level_id = 11,
+        pos = { -43.0545, 23.6624, -24.8972 },
+        lvid = 172583,
+        gvid = 2341,
+    },
+    {
+        label = "Dead City",
+        level = "l09_deadcity",
+        level_id = 11,
+        pos = { -17.0337, -2.1524, 6.0751 },
+        lvid = 123723,
+        gvid = 2422,
+    },
+    {
+        label = "Yantar",
+        level = "l08_yantar",
+        level_id = 10,
+        pos = { 7.7725, 21.7258, 0.3640 },
+        lvid = 92856,
+        gvid = 2234,
+    },
+    {
+        label = "Yantar",
+        level = "l08_yantar",
+        level_id = 10,
+        pos = { -173.8332, 1.9559, -148.6844 },
+        lvid = 21697,
+        gvid = 2193,
+    },
+    {
+        label = "Agroprom",
+        level = "l03_agroprom",
+        level_id = 4,
+        pos = { 16.1940, 29.4499, 19.8237 },
+        lvid = 213388,
+        gvid = 1024,
+    },
+    {
+        label = "Agroprom",
+        level = "l03_agroprom",
+        level_id = 4,
+        pos = { -144.4240, 9.9872, -198.1497 },
+        lvid = 71069,
+        gvid = 1034,
+    },
+    {
+        label = "Agroprom Underground",
+        level = "l03u_agr_underground",
+        level_id = 20,
+        pos = { 110.3259, -2.4026, -21.3191 },
+        lvid = 8952,
+        gvid = 3722,
+    },
+    {
+        label = "Great Swamps",
+        level = "k00_marsh",
+        level_id = 1,
+        pos = { 371.7672, 2.7611, 230.1701 },
+        lvid = 383902,
+        gvid = 97,
+    },
+    {
+        label = "Great Swamps",
+        level = "k00_marsh",
+        level_id = 1,
+        pos = { 273.7532, 19.5132, -162.4481 },
+        lvid = 250795,
+        gvid = 88,
+    },
+    {
+        label = "Wild Territory",
+        level = "l06_rostok",
+        level_id = 8,
+        pos = { -242.3916, 23.8694, 40.1136 },
+        lvid = 12831,
+        gvid = 1932,
+    },
+    {
+        label = "Wild Territory",
+        level = "l06_rostok",
+        level_id = 8,
+        pos = { -255.5876, -5.8926, 90.0073 },
+        lvid = 7912,
+        gvid = 1885,
+    },
+    {
+        label = "Rostok",
+        level = "l05_bar",
+        level_id = 7,
+        pos = { 156.8016, 5.2342, 90.2335 },
+        lvid = 47853,
+        gvid = 1684,
+    },
+    {
+        label = "Radar",
+        level = "l10_radar",
+        level_id = 13,
+        pos = { 305.2571, -39.3647, -26.2581 },
+        lvid = 68467,
+        gvid = 2551,
+    },
+    {
+        label = "Radar",
+        level = "l10_radar",
+        level_id = 13,
+        pos = { -16.8886, 31.8397, 56.6780 },
+        lvid = 67435,
+        gvid = 2551,
+    },
+    {
+        label = "Laboratory X19 (Radar)",
+        level = "l10u_bunker",
+        level_id = 23,
+        pos = { 8.5942, -9.0166, -13.4179 },
+        lvid = 7747,
+        gvid = 3837,
+    },
+    {
+        label = "Laboratory X19 (Radar)",
+        level = "l10u_bunker",
+        level_id = 23,
+        pos = { -28.6626, -10.3907, -4.2362 },
+        lvid = 2393,
+        gvid = 3852,
+    },
+    {
+        label = "Jupiter Underground",
+        level = "jupiter_underground",
+        level_id = 29,
+        pos = { 35.5690, 26.5976, -35.6777 },
+        lvid = 21835,
+        gvid = 4856,
+    },
+    {
+        label = "Red Forest",
+        level = "l10_red_forest",
+        level_id = 14,
+        pos = { -112.0537, -5.8401, -56.1393 },
+        lvid = 8825,
+        gvid = 2836,
+    },
+    {
+        label = "Red Forest",
+        level = "l10_red_forest",
+        level_id = 14,
+        pos = { 228.3715, 0.4082, -96.3142 },
+        lvid = 141879,
+        gvid = 2771,
+    },
+    {
+        label = "Jupiter",
+        level = "jupiter",
+        level_id = 28,
+        pos = { -52.2523, 58.3331, -309.5505 },
+        lvid = 630936,
+        gvid = 4466,
+    },
+    {
+        label = "Jupiter",
+        level = "jupiter",
+        level_id = 28,
+        pos = { 223.5782, -9.7011, 161.9610 },
+        lvid = 1098707,
+        gvid = 4647,
+    },
+    {
+        label = "Jupiter",
+        level = "jupiter",
+        level_id = 28,
+        pos = { 399.8435, 20.8297, 357.6152 },
+        lvid = 1346288,
+        gvid = 4490,
+    },
+    {
+        label = "Zaton",
+        level = "zaton",
+        level_id = 27,
+        pos = { 310.4497, 29.8163, -407.9099 },
+        lvid = 1491457,
+        gvid = 4132,
+    },
+    {
+        label = "Zaton",
+        level = "zaton",
+        level_id = 27,
+        pos = { 232.4585, 8.0916, -6.2827 },
+        lvid = 1361638,
+        gvid = 4141,
+    },
+    {
+        label = "Limansk",
+        level = "l10_limansk",
+        level_id = 12,
+        pos = { 79.4180, 76.2500, 186.1789 },
+        lvid = 34170,
+        gvid = 2441,
+    },
+    {
+        label = "Limansk",
+        level = "l10_limansk",
+        level_id = 12,
+        pos = { -49.8351, -0.7437, -158.8605 },
+        lvid = 3052,
+        gvid = 2434,
+    },
+    {
+        label = "Deserted Hospital",
+        level = "l11_hospital",
+        level_id = 15,
+        pos = { -98.2483, 32.7512, 614.8104 },
+        lvid = 550,
+        gvid = 2882,
+    },
+    {
+        label = "Monolith Control Center",
+        level = "l12u_control_monolith",
+        level_id = 25,
+        pos = { -0.1080, -34.3556, 17.7069 },
+        lvid = 1874,
+        gvid = 4018,
+    },
+    {
+        label = "Chernobyl NPP (South)",
+        level = "l12_stancia",
+        level_id = 17,
+        pos = { 927.9609, -0.1011, -206.4885 },
+        lvid = 423642,
+        gvid = 3076,
+    },
+    {
+        label = "Generators",
+        level = "l13_generators",
+        level_id = 19,
+        pos = { 13.5693, 47.8400, -230.7291 },
+        lvid = 215585,
+        gvid = 3502,
+    },
+    {
+        label = "Garbage",
+        level = "l02_garbage",
+        level_id = 3,
+        pos = { -61.9535, 22.6438, 8.6253 },
+        lvid = 135834,
+        gvid = 724,
+    },
+    {
+        label = "Garbage",
+        level = "l02_garbage",
+        level_id = 3,
+        pos = { -45.1020, 15.8432, -192.7855 },
+        lvid = 148157,
+        gvid = 653,
+    },
+    {
+        label = "Rostok",
+        level = "l05_bar",
+        level_id = 7,
+        pos = { 175.4399, 1.4841, 143.1346 },
+        lvid = 47011,
+        gvid = 1707,
+    },
+}
+
+local logger = nil
+
+COMPASS_STATE = COMPASS_STATE or {}
+local state = COMPASS_STATE
+state.last_capture_clock = state.last_capture_clock or 0
+state.last_teleport_clock = state.last_teleport_clock or 0
+state.last_activation_sound_clock = state.last_activation_sound_clock or 0
+state.stations = state.stations or {}
+state.pending_station_limit_reject = state.pending_station_limit_reject or {}
+state.station_limit_rejected_at = state.station_limit_rejected_at or {}
+state.pending_arrival_effect = state.pending_arrival_effect or nil
+state.config = state.config or {}
+state.config.failure_chance = state.config.failure_chance or DEFAULT_FAILURE_CHANCE
+state.config.calibration_hours = state.config.calibration_hours or DEFAULT_CALIBRATION_HOURS
+state.config.uncalibrated_one_failure_chance = state.config.uncalibrated_one_failure_chance or DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE
+state.config.uncalibrated_both_failure_chance = state.config.uncalibrated_both_failure_chance or DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE
+state.config.capture_locations = state.config.capture_locations or DEFAULT_CAPTURE_LOCATIONS
+state.config.capture_key = state.config.capture_key or DEFAULT_CAPTURE_KEY
+
+local function write_log(fmt, ...)
+    local msg = string.format(fmt, ...)
+
+    printf("[%s] %s", MOD, msg)
+
+    if logger and logger.info then
+        logger.info("%s", msg)
+    end
+end
+
+local function log_info(fmt, ...)
+    if LOG_DIAGNOSTICS then
+        write_log(fmt, ...)
+    end
+end
+
+local function log_activation(fmt, ...)
+    write_log(fmt, ...)
+end
+
+local function log_capture(fmt, ...)
+    write_log(fmt, ...)
+end
+
+local function init_logger()
+    if logger or not xlog or not xlog.get_logger then
+        return
+    end
+
+    local ok, result = pcall(xlog.get_logger, "COMPASS", {
+        outfile = "compass.log",
+    })
+
+    if ok then
+        logger = result
+    end
+end
+
+local function translated_string(id)
+    if not id then
+        return ""
+    end
+
+    if game and game.translate_string then
+        local ok, value = pcall(game.translate_string, id)
+        if ok and value and value ~= "" and value ~= id then
+            return value
+        end
+    end
+
+    return tostring(id)
+end
+
+local function translated_format(id, ...)
+    local value = translated_string(id)
+    if select("#", ...) == 0 then
+        return value
+    end
+
+    local ok, result = pcall(string.format, value, ...)
+    if ok then
+        return result
+    end
+
+    return value
+end
+
+local function send_news(msg_id, ...)
+    local title = translated_string(NEWS_TITLE)
+    local msg = translated_format(msg_id, ...)
+
+    if xpda and xpda.send then
+        pcall(xpda.send, title, msg, NEWS_ICON)
+        return
+    end
+
+    if db and db.actor and db.actor.give_game_news then
+        pcall(function()
+            db.actor:give_game_news(title, msg, NEWS_ICON, 0, 5000, 0)
+        end)
+    end
+end
+
+local function safe_value(label, fn)
+    local ok, value = pcall(fn)
+    if ok then
+        return value
+    end
+
+    log_info("capture warning: failed to read %s: %s", label, tostring(value))
+    return nil
+end
+
+local function optional_value(fn)
+    local ok, value = pcall(fn)
+    if ok then
+        return value
+    end
+
+    return nil
+end
+
+local function vector_component(v, key)
+    if not v then
+        return nil
+    end
+
+    return safe_value("vector." .. key, function()
+        return v[key]
+    end)
+end
+
+local function format_vector(v)
+    if not v then
+        return "nil"
+    end
+
+    local x = vector_component(v, "x")
+    local y = vector_component(v, "y")
+    local z = vector_component(v, "z")
+
+    if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" then
+        return tostring(v)
+    end
+
+    return string.format("vector():set(%.4f, %.4f, %.4f)", x, y, z)
+end
+
+local function format_pos(pos)
+    if not pos or type(pos[1]) ~= "number" or type(pos[2]) ~= "number" or type(pos[3]) ~= "number" then
+        return "nil"
+    end
+
+    return string.format("vector():set(%.4f, %.4f, %.4f)", pos[1], pos[2], pos[3])
+end
+
+local function make_vector(values)
+    return vector():set(values[1], values[2], values[3])
+end
+
+local function make_vector_from_pos(pos)
+    if not pos or type(pos[1]) ~= "number" or type(pos[2]) ~= "number" or type(pos[3]) ~= "number" then
+        return nil
+    end
+
+    return vector():set(pos[1], pos[2], pos[3])
+end
+
+local function current_level_name()
+    return safe_value("level.name", function()
+        return level.name()
+    end)
+end
+
+local function invalid_lvid()
+    return xconst and xconst.INVALID_LEVEL_VERTEX_ID or 4294967295
+end
+
+local function validate_endpoint(endpoint)
+    if not endpoint then
+        return false, "endpoint is nil"
+    end
+
+    if not endpoint.level or not endpoint.pos or not endpoint.lvid or not endpoint.gvid then
+        return false, "endpoint is missing required fields"
+    end
+
+    if type(endpoint.pos[1]) ~= "number" or type(endpoint.pos[2]) ~= "number" or type(endpoint.pos[3]) ~= "number" then
+        return false, "endpoint position is invalid"
+    end
+
+    if endpoint.lvid == invalid_lvid() then
+        return false, "endpoint level vertex is invalid"
+    end
+
+    return true
+end
+
+local function object_by_id_safe(id)
+    if not id then
+        return nil
+    end
+
+    return safe_value("level.object_by_id", function()
+        return level.object_by_id(id)
+    end)
+end
+
+local function object_section(obj)
+    if not obj then
+        return nil
+    end
+
+    return safe_value("object.section", function()
+        return obj:section()
+    end)
+end
+
+local function server_object_by_id_safe(obj_id)
+    if not obj_id then
+        return nil
+    end
+
+    local id = tonumber(obj_id) or obj_id
+    if alife_object then
+        local se_obj = optional_value(function()
+            return alife_object(id)
+        end)
+
+        if se_obj then
+            return se_obj
+        end
+    end
+
+    local sim = optional_value(function()
+        return alife and alife() or nil
+    end)
+
+    if sim then
+        return optional_value(function()
+            return sim:object(id)
+        end)
+    end
+
+    return nil
+end
+
+local function server_object_section(obj_id)
+    local se_obj = server_object_by_id_safe(obj_id)
+    if not se_obj then
+        return nil
+    end
+
+    return optional_value(function()
+        return se_obj:section_name()
+    end)
+end
+
+local function get_sound(path)
+    if xr_sound and xr_sound.get_safe_sound_object then
+        return optional_value(function()
+            return xr_sound.get_safe_sound_object(path)
+        end)
+    end
+
+    return sound_object and optional_value(function()
+        return sound_object(path)
+    end) or nil
+end
+
+local function play_actor_sound(path, source_id, reason, volume, log_label)
+    volume = volume or 1.0
+    log_label = log_label or "sound"
+    log_info(
+        "%s requested: source=%s reason=%s path=%s volume=%.2f",
+        log_label,
+        tostring(source_id),
+        tostring(reason),
+        tostring(path),
+        volume
+    )
+
+    local snd = get_sound(path)
+    if not snd then
+        log_info("%s unavailable: %s", log_label, tostring(path))
+        return false
+    end
+
+    local actor = db and db.actor
+    if not actor then
+        log_info("%s skipped: db.actor is nil source=%s", log_label, tostring(source_id))
+        return false
+    end
+
+    local method = "play_no_feedback"
+    local ok, err = pcall(function()
+        snd:play_no_feedback(actor, sound_object.s2d, 0, vector(), volume, 1.0)
+    end)
+
+    if not ok then
+        method = "play"
+        ok, err = pcall(function()
+            snd:play(actor, 0, sound_object.s2d)
+            snd.volume = volume
+        end)
+
+        if not ok then
+            log_info("%s failed: path=%s error=%s", log_label, tostring(path), tostring(err))
+            return false
+        end
+    end
+
+    log_info(
+        "%s played: source=%s reason=%s path=%s method=%s volume=%.2f",
+        log_label,
+        tostring(source_id),
+        tostring(reason),
+        tostring(path),
+        method,
+        volume
+    )
+    return true
+end
+
+local function play_activation_sound(source_id, reason, is_failure)
+    local now = os.clock()
+    if now - state.last_activation_sound_clock < 0.25 then
+        log_info(
+            "activation sound suppressed: source=%s reason=%s",
+            tostring(source_id),
+            tostring(reason)
+        )
+        return
+    end
+    state.last_activation_sound_clock = now
+
+    local path = is_failure and ACTIVATION_FAILURE_SOUND or ACTIVATION_SUCCESS_SOUND
+    play_actor_sound(path, source_id, reason, ACTIVATION_SOUND_VOLUME, "activation sound")
+end
+
+local function is_compass_station_id(obj_id)
+    local obj = object_by_id_safe(obj_id)
+    return object_section(obj) == STATION_SECTION
+end
+
+local function vector_to_xyz(v)
+    if not v then
+        return nil, nil, nil
+    end
+
+    return vector_component(v, "x"), vector_component(v, "y"), vector_component(v, "z")
+end
+
+local function vector_to_pos(v)
+    local x, y, z = vector_to_xyz(v)
+    if type(x) ~= "number" or type(y) ~= "number" or type(z) ~= "number" then
+        return nil
+    end
+
+    return { x, y, z }
+end
+
+local function station_key(obj_id)
+    return obj_id and tostring(obj_id) or nil
+end
+
+local function station_count()
+    local count = 0
+    for _ in pairs(state.stations) do
+        count = count + 1
+    end
+
+    return count
+end
+
+local function station_count_excluding(obj_id)
+    local skip_key = station_key(obj_id)
+    local count = 0
+
+    for key in pairs(state.stations) do
+        if key ~= skip_key then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
+local function game_seconds()
+    if xtime and xtime.game_sec then
+        local value = optional_value(function()
+            return xtime.game_sec()
+        end)
+
+        if type(value) == "number" then
+            return value
+        end
+    end
+
+    return time_global and (time_global() / 1000) or os.clock()
+end
+
+local function calibration_duration_seconds()
+    local hours = tonumber(state.config.calibration_hours) or DEFAULT_CALIBRATION_HOURS
+    return math.max(0, hours * GAME_HOUR_SECONDS)
+end
+
+local function format_game_duration(seconds)
+    local minutes = math.ceil(math.max(0, tonumber(seconds) or 0) / 60)
+    if minutes <= 0 then
+        return "0m"
+    end
+
+    local hours = math.floor(minutes / 60)
+    local mins = minutes - (hours * 60)
+
+    if hours > 0 then
+        return string.format("%dh %02dm", hours, mins)
+    end
+
+    return string.format("%dm", minutes)
+end
+
+local function station_calibration_info(station, now)
+    local duration = calibration_duration_seconds()
+    local started_at = tonumber(station and (station.calibration_started_at or station.placed_at))
+
+    if duration <= 0 then
+        return {
+            ready = true,
+            started_at = started_at,
+            ready_at = started_at,
+            remaining = 0,
+        }
+    end
+
+    if not started_at then
+        started_at = game_seconds()
+    end
+
+    local ready_at = started_at + duration
+    local remaining = ready_at - (now or game_seconds())
+
+    return {
+        ready = remaining <= 0,
+        started_at = started_at,
+        ready_at = ready_at,
+        remaining = math.max(0, remaining),
+    }
+end
+
+local function calibration_status_text(info)
+    if info and info.ready then
+        return translated_string("st_compass_calibration_ready")
+    end
+
+    return translated_format("st_compass_calibration_pending", format_game_duration(info and info.remaining or 0))
+end
+
+local function read_lvid(obj)
+    local lvid = obj and safe_value("station.level_vertex_id", function()
+        return obj:level_vertex_id()
+    end)
+
+    if lvid then
+        return lvid
+    end
+
+    return db and db.actor and safe_value("actor.level_vertex_id", function()
+        return db.actor:level_vertex_id()
+    end)
+end
+
+local function read_gvid(obj)
+    local gvid = obj and safe_value("station.game_vertex_id", function()
+        return obj:game_vertex_id()
+    end)
+
+    if gvid then
+        return gvid
+    end
+
+    return db and db.actor and safe_value("actor.game_vertex_id", function()
+        return db.actor:game_vertex_id()
+    end)
+end
+
+local function read_actor_lvid()
+    return db and db.actor and safe_value("actor.level_vertex_id", function()
+        return db.actor:level_vertex_id()
+    end)
+end
+
+local function read_actor_gvid()
+    return db and db.actor and safe_value("actor.game_vertex_id", function()
+        return db.actor:game_vertex_id()
+    end)
+end
+
+local function read_level_id(obj_id)
+    if not xlevel or not xlevel.get_level_id or not obj_id then
+        return nil
+    end
+
+    local se_obj = safe_value("alife_object", function()
+        return alife_object(obj_id)
+    end)
+
+    if not se_obj then
+        if xlevel.get_actor_level_id then
+            return safe_value("xlevel.get_actor_level_id", function()
+                return xlevel.get_actor_level_id()
+            end)
+        end
+
+        return nil
+    end
+
+    return safe_value("xlevel.get_level_id", function()
+        return xlevel.get_level_id(se_obj)
+    end)
+end
+
+local function translate_or_raw(value)
+    if not value then
+        return nil
+    end
+
+    local translated = game and game.translate_string and safe_value("game.translate_string", function()
+        return game.translate_string(value)
+    end)
+
+    if translated and translated ~= value then
+        return translated
+    end
+
+    return value
+end
+
+local function level_display_name(level_id, level_name)
+    if xlevel and xlevel.get_level_name and level_id then
+        local name = safe_value("xlevel.get_level_name", function()
+            return xlevel.get_level_name(level_id)
+        end)
+
+        if name and tostring(name) ~= "" then
+            return tostring(name)
+        end
+    end
+
+    return translate_or_raw(level_name) or "unknown"
+end
+
+local function strip_smart_level_prefix(smart_name, level_label)
+    if not smart_name or not level_label then
+        return smart_name
+    end
+
+    local escaped_level = level_label:gsub("([^%w])", "%%%1")
+    local patterns = {
+        "^" .. escaped_level .. "%.%s+(.+)$",
+        "^" .. escaped_level .. "%s+%-%s+(.+)$",
+        "^" .. escaped_level .. "%s+(.+)$",
+    }
+
+    for _, pattern in ipairs(patterns) do
+        local rest = smart_name:match(pattern)
+        if rest and rest ~= "" then
+            return rest
+        end
+    end
+
+    return smart_name
+end
+
+local function smart_display_name(pos, level_id, level_label)
+    if not xsmart or not xsmart.find_smart or not xlevel or not xlevel.get_smart_display_name or not pos or not level_id then
+        return nil
+    end
+
+    local v = make_vector_from_pos(pos)
+    if not v then
+        return nil
+    end
+
+    local smart = safe_value("xsmart.find_smart", function()
+        return xsmart.find_smart(v, { level_id = level_id })
+    end)
+
+    local name = smart and safe_value("xlevel.get_smart_display_name", function()
+        return xlevel.get_smart_display_name(smart)
+    end)
+
+    if not name or tostring(name) == "" then
+        return nil
+    end
+
+    name = strip_smart_level_prefix(tostring(name), level_label)
+    if name == level_label then
+        return nil
+    end
+
+    return name
+end
+
+local function station_name_parts(pos, level_id, level_name)
+    local level_label = level_display_name(level_id, level_name)
+    local smart_label = smart_display_name(pos, level_id, level_label)
+    return level_label, smart_label
+end
+
+local function make_station_labels(pos, level_id, level_name)
+    local level_label, smart_label = station_name_parts(pos, level_id, level_name)
+    local plain
+
+    if smart_label then
+        plain = string.format("%s %s", level_label, smart_label)
+    else
+        plain = level_label
+    end
+
+    return plain, level_label, smart_label
+end
+
+local function refresh_station_labels(station)
+    if not station then
+        return
+    end
+
+    station.label, station.level_label, station.smart_label = make_station_labels(
+        station.pos,
+        station.level_id,
+        station.level
+    )
+end
+
+local function should_update_arrival(reason)
+    return reason == "hf-place" or reason == "interaction" or reason == "teleport-source"
+end
+
+local function station_to_endpoint(station)
+    if not station then
+        return nil
+    end
+
+    return {
+        label = station.label,
+        level = station.level,
+        pos = station.pos,
+        lvid = station.lvid,
+        gvid = station.gvid,
+    }
+end
+
+local function update_station_hf_data(obj_id, station)
+    if not hf_obj_manager or not obj_id or not station then
+        return
+    end
+
+    local pos = station.pos or {}
+    local calibration = station_calibration_info(station)
+    local payload = {
+        compass_registered = true,
+        compass_label = station.label,
+        compass_level = station.level,
+        compass_x = pos[1],
+        compass_y = pos[2],
+        compass_z = pos[3],
+        compass_lvid = station.lvid,
+        compass_gvid = station.gvid,
+        compass_station_x = station.station_pos and station.station_pos[1],
+        compass_station_y = station.station_pos and station.station_pos[2],
+        compass_station_z = station.station_pos and station.station_pos[3],
+        compass_level_id = station.level_id,
+        compass_level_label = station.level_label,
+        compass_smart_label = station.smart_label,
+        compass_placed_at = station.placed_at,
+        compass_calibration_started_at = station.calibration_started_at,
+        compass_calibration_ready_at = calibration.ready_at,
+        compass_calibration_remaining = calibration.remaining,
+        compass_calibration_ready = calibration.ready,
+    }
+
+    local ok, err = pcall(hf_obj_manager.update_data, obj_id, payload)
+    if not ok then
+        log_info("HF station data update failed: id=%s error=%s", tostring(obj_id), tostring(err))
+    end
+end
+
+local function register_station(obj_id, reason)
+    local key = station_key(obj_id)
+    if not key then
+        return nil
+    end
+
+    local existing = state.stations[key]
+    local obj = object_by_id_safe(obj_id)
+    local section = object_section(obj) or server_object_section(obj_id)
+
+    if section and section ~= STATION_SECTION then
+        return nil
+    end
+
+    if not obj and not existing and (reason == "bound" or reason == "first-update" or reason == "hf-place" or reason == "interaction") then
+        return nil
+    end
+
+    local level_name = current_level_name()
+    local obj_pos = obj and safe_value("station.position", function()
+        return obj:position()
+    end)
+
+    local actor_pos = db and db.actor and safe_value("actor.position", function()
+        return db.actor:position()
+    end)
+
+    local station_pos = vector_to_pos(obj_pos) or vector_to_pos(actor_pos)
+    existing = existing or {}
+
+    local arrival_pos = existing.pos or station_pos
+    local arrival_lvid = existing.lvid
+    local arrival_gvid = existing.gvid
+
+    if should_update_arrival(reason) and actor_pos then
+        arrival_pos = vector_to_pos(actor_pos) or arrival_pos
+        arrival_lvid = read_actor_lvid() or arrival_lvid
+        arrival_gvid = read_actor_gvid() or arrival_gvid
+    end
+
+    local station_lvid = read_lvid(obj) or existing.station_lvid
+    local station_gvid = read_gvid(obj) or existing.station_gvid
+    local level_id = read_level_id(obj_id) or existing.level_id
+    local placed_at = tonumber(existing.placed_at or existing.calibration_started_at) or game_seconds()
+
+    local station = {
+        id = tonumber(obj_id) or obj_id,
+        level = level_name or existing.level,
+        level_id = level_id,
+        pos = arrival_pos or station_pos,
+        lvid = arrival_lvid or station_lvid,
+        gvid = arrival_gvid or station_gvid,
+        station_pos = station_pos or existing.station_pos,
+        station_lvid = station_lvid,
+        station_gvid = station_gvid,
+        placed_at = placed_at,
+        calibration_started_at = placed_at,
+        updated_at = time_global and time_global() or 0,
+    }
+
+    refresh_station_labels(station)
+
+    state.stations[key] = station
+    update_station_hf_data(obj_id, station)
+
+    log_info(
+        "station registered: id=%s reason=%s label=%s level=%s station_pos=%s arrival_pos=%s lvid=%s gvid=%s total=%s",
+        tostring(obj_id),
+        tostring(reason),
+        tostring(station.label),
+        tostring(station.level),
+        format_vector(obj_pos),
+        format_pos(station.pos),
+        tostring(station.lvid),
+        tostring(station.gvid),
+        tostring(station_count())
+    )
+    return station
+end
+
+local function remove_station(obj_id, reason)
+    local key = station_key(obj_id)
+    if not key then
+        return
+    end
+
+    local station = state.stations[key]
+    state.stations[key] = nil
+
+    log_info(
+        "station removed: id=%s reason=%s existed=%s total=%s",
+        tostring(obj_id),
+        tostring(reason),
+        tostring(station ~= nil),
+        tostring(station_count())
+    )
+end
+
+local function is_known_compass_station_id(obj_id)
+    return state.stations[station_key(obj_id)] ~= nil or is_compass_station_id(obj_id)
+end
+
+local function is_server_compass_station(obj_id)
+    if not obj_id then
+        return false
+    end
+
+    local queried = false
+    local id = tonumber(obj_id) or obj_id
+
+    local function matches_station_section(se_obj)
+        local section = se_obj and optional_value(function()
+            return se_obj:section_name()
+        end)
+
+        return section == STATION_SECTION
+    end
+
+    if alife_object then
+        queried = true
+        local se_obj = optional_value(function()
+            return alife_object(id)
+        end)
+
+        if se_obj then
+            return matches_station_section(se_obj)
+        end
+    end
+
+    local sim = optional_value(function()
+        return alife and alife() or nil
+    end)
+
+    if sim then
+        queried = true
+        local se_obj = optional_value(function()
+            return sim:object(id)
+        end)
+
+        if se_obj then
+            return matches_station_section(se_obj)
+        end
+    end
+
+    -- If ALife is not queryable yet, keep registry data instead of deleting valid offline stations.
+    return not queried
+end
+
+local function prune_missing_stations(reason)
+    local stale_ids = {}
+
+    for key, station in pairs(state.stations) do
+        local obj_id = station and station.id or key
+        if not is_server_compass_station(obj_id) then
+            stale_ids[#stale_ids + 1] = obj_id
+        end
+    end
+
+    for _, obj_id in ipairs(stale_ids) do
+        remove_station(obj_id, "stale-" .. tostring(reason))
+    end
+
+    if #stale_ids > 0 then
+        log_info(
+            "station registry pruned: reason=%s removed=%s total=%s",
+            tostring(reason),
+            tostring(#stale_ids),
+            tostring(station_count())
+        )
+    end
+end
+
+local function delete_station_hf_data(obj_id)
+    if not hf_obj_manager or not hf_obj_manager.delete_data then
+        return
+    end
+
+    local ok, err = pcall(hf_obj_manager.delete_data, obj_id)
+    if not ok then
+        log_info("HF station data delete failed: id=%s error=%s", tostring(obj_id), tostring(err))
+    end
+end
+
+local function return_station_item()
+    if not alife_create_item or not db or not db.actor then
+        return false
+    end
+
+    local ok = pcall(alife_create_item, STATION_ITEM_SECTION, db.actor)
+    return ok
+end
+
+local function release_station_object(obj_id)
+    local obj = object_by_id_safe(obj_id)
+
+    if obj and alife_release then
+        local ok = pcall(alife_release, obj, "compass station limit")
+        if ok then
+            return true
+        end
+    end
+
+    if alife_release_id then
+        local ok = pcall(alife_release_id, tonumber(obj_id) or obj_id, "compass station limit")
+        return ok
+    end
+
+    return false
+end
+
+local function mark_station_limit_reject(obj_id, reason)
+    local key = station_key(obj_id)
+    if not key then
+        return
+    end
+
+    state.pending_station_limit_reject[key] = true
+end
+
+local function is_station_limit_reject_pending(obj_id)
+    local key = station_key(obj_id)
+    return key and state.pending_station_limit_reject[key] == true
+end
+
+local function clear_station_limit_reject(obj_id)
+    local key = station_key(obj_id)
+    if key then
+        state.pending_station_limit_reject[key] = nil
+    end
+end
+
+local function station_limit_rejected_recently(obj_id)
+    local key = station_key(obj_id)
+    local rejected_at = key and state.station_limit_rejected_at[key]
+    if not rejected_at then
+        return false
+    end
+
+    if os.clock() - rejected_at <= STATION_LIMIT_DUPLICATE_WINDOW then
+        return true
+    end
+
+    state.station_limit_rejected_at[key] = nil
+    return false
+end
+
+local function remember_station_limit_reject(obj_id)
+    local key = station_key(obj_id)
+    if key then
+        state.station_limit_rejected_at[key] = os.clock()
+    end
+end
+
+local function is_new_station_over_limit(obj_id)
+    local key = station_key(obj_id)
+    return key and state.stations[key] == nil and station_count_excluding(obj_id) >= MAX_STATIONS
+end
+
+local function reject_station_limit(obj_id)
+    local duplicate = station_limit_rejected_recently(obj_id)
+    clear_station_limit_reject(obj_id)
+    remove_station(obj_id, "station-limit")
+    delete_station_hf_data(obj_id)
+    local can_release = duplicate
+    if not duplicate then
+        remember_station_limit_reject(obj_id)
+        can_release = return_station_item()
+        if not can_release then
+            log_info("station limit item return failed: id=%s", tostring(obj_id))
+        end
+    end
+    if can_release then
+        release_station_object(obj_id)
+    end
+    if not duplicate then
+        send_news("st_compass_news_station_limit", MAX_STATIONS, MAX_DESTINATION_BUTTONS)
+    end
+end
+
+local function config_bool(value, default)
+    if value == nil then
+        return default
+    end
+
+    if type(value) == "boolean" then
+        return value
+    end
+
+    if type(value) == "number" then
+        return value ~= 0
+    end
+
+    local text = tostring(value):lower()
+    if text == "true" or text == "1" or text == "yes" or text == "on" then
+        return true
+    end
+
+    if text == "false" or text == "0" or text == "no" or text == "off" then
+        return false
+    end
+
+    return default
+end
+
+local function clamp_number(value, default, min_value, max_value)
+    local number = tonumber(value)
+    if number == nil then
+        number = default
+    end
+
+    if number < min_value then
+        return min_value
+    end
+
+    if number > max_value then
+        return max_value
+    end
+
+    return number
+end
+
+local function sync_config()
+    local failure = DEFAULT_FAILURE_CHANCE
+    local calibration_hours = DEFAULT_CALIBRATION_HOURS
+    local uncalibrated_one = DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE
+    local uncalibrated_both = DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE
+    local capture_locations = DEFAULT_CAPTURE_LOCATIONS
+    local capture_key = DEFAULT_CAPTURE_KEY
+
+    if ui_mcm then
+        local ok, mcm_failure = pcall(ui_mcm.get, "compass/failure_chance")
+        if ok and mcm_failure ~= nil then
+            failure = tonumber(mcm_failure) or failure
+        end
+
+        local ok_calibration, mcm_calibration = pcall(ui_mcm.get, "compass/calibration_hours")
+        if ok_calibration and mcm_calibration ~= nil then
+            calibration_hours = tonumber(mcm_calibration) or calibration_hours
+        end
+
+        local ok_one, mcm_one = pcall(ui_mcm.get, "compass/uncalibrated_one_failure_chance")
+        if ok_one and mcm_one ~= nil then
+            uncalibrated_one = tonumber(mcm_one) or uncalibrated_one
+        end
+
+        local ok_both, mcm_both = pcall(ui_mcm.get, "compass/uncalibrated_both_failure_chance")
+        if ok_both and mcm_both ~= nil then
+            uncalibrated_both = tonumber(mcm_both) or uncalibrated_both
+        end
+
+        local ok_capture, mcm_capture = pcall(ui_mcm.get, "compass/capture_locations")
+        if ok_capture then
+            capture_locations = config_bool(mcm_capture, capture_locations)
+        end
+
+        local ok_key, mcm_key = pcall(ui_mcm.get, "compass/capture_key")
+        if ok_key and mcm_key ~= nil then
+            capture_key = tonumber(mcm_key) or capture_key
+        end
+    end
+
+    failure = clamp_number(failure, DEFAULT_FAILURE_CHANCE, 0, 100)
+    calibration_hours = clamp_number(calibration_hours, DEFAULT_CALIBRATION_HOURS, 0, 168)
+    uncalibrated_one = clamp_number(uncalibrated_one, DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE, 0, 100)
+    uncalibrated_both = clamp_number(uncalibrated_both, DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE, 0, 100)
+    state.config.failure_chance = failure
+    state.config.calibration_hours = calibration_hours
+    state.config.uncalibrated_one_failure_chance = uncalibrated_one
+    state.config.uncalibrated_both_failure_chance = uncalibrated_both
+    state.config.capture_locations = capture_locations
+    state.config.capture_key = capture_key
+    log_info(
+        "config synced: failure_chance=%s calibration_hours=%s uncalibrated_one=%s uncalibrated_both=%s capture_locations=%s capture_key=%s",
+        tostring(failure),
+        tostring(calibration_hours),
+        tostring(uncalibrated_one),
+        tostring(uncalibrated_both),
+        tostring(capture_locations),
+        tostring(capture_key)
+    )
+end
+
+local function roll_failure(chance)
+    chance = tonumber(chance) or tonumber(state.config.failure_chance) or DEFAULT_FAILURE_CHANCE
+    if chance <= 0 then
+        return false, 100, chance
+    end
+
+    if chance >= 100 then
+        return true, 0, chance
+    end
+
+    local roll = math.random() * 100
+    return roll < chance, roll, chance
+end
+
+local function effective_failure_chance(source, target)
+    local base = tonumber(state.config.failure_chance) or DEFAULT_FAILURE_CHANCE
+    local one_uncalibrated = tonumber(state.config.uncalibrated_one_failure_chance) or DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE
+    local both_uncalibrated = tonumber(state.config.uncalibrated_both_failure_chance) or DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE
+    local source_ready = source == nil or station_calibration_info(source).ready
+    local target_ready = target == nil or station_calibration_info(target).ready
+
+    if not source_ready and not target_ready then
+        return math.max(base, both_uncalibrated), source_ready, target_ready
+    end
+
+    if not source_ready or not target_ready then
+        return math.max(base, one_uncalibrated), source_ready, target_ready
+    end
+
+    return base, source_ready, target_ready
+end
+
+local function success_chance_from_failure(failure_chance)
+    local success = 100 - (tonumber(failure_chance) or 0)
+    return math.max(0, math.min(100, success))
+end
+
+local function random_failure_destination()
+    if #FAILURE_DESTINATIONS == 0 then
+        return nil
+    end
+
+    return FAILURE_DESTINATIONS[math.random(1, #FAILURE_DESTINATIONS)]
+end
+
+local function update_station_interaction_data(obj_id, level_name, pos)
+    if not hf_obj_manager or not obj_id then
+        return
+    end
+
+    local x, y, z = vector_to_xyz(pos)
+    local payload = {
+        last_interaction_time = time_global and time_global() or 0,
+        last_interaction_level = level_name,
+        last_interaction_x = x,
+        last_interaction_y = y,
+        last_interaction_z = z,
+    }
+
+    local ok, err = pcall(hf_obj_manager.update_data, obj_id, payload)
+    if not ok then
+        log_info("HF station data update failed: id=%s error=%s", tostring(obj_id), tostring(err))
+    end
+end
+
+local function lua_string_or_nil(value)
+    if value == nil then
+        return "nil"
+    end
+
+    return string.format("%q", tostring(value))
+end
+
+local function write_capture_block(block)
+    init_logger()
+
+    for line in block:gmatch("[^\r\n]+") do
+        log_capture("%s", line)
+    end
+end
+
+local function capture_location()
+    local now = os.clock()
+    if now - state.last_capture_clock < 0.75 then
+        return
+    end
+    state.last_capture_clock = now
+
+    local actor = db and db.actor
+    if not actor then
+        write_capture_block("capture failed: db.actor is nil")
+        return
+    end
+
+    local level_name = current_level_name()
+    local pos = safe_value("actor.position", function()
+        return actor:position()
+    end)
+    local lvid = read_actor_lvid()
+    local gvid = read_actor_gvid()
+    local direction = safe_value("actor.direction", function()
+        return actor:direction()
+    end)
+    local level_id = xlevel and xlevel.get_actor_level_id and safe_value("xlevel.get_actor_level_id", function()
+        return xlevel.get_actor_level_id()
+    end)
+    local level_label, smart_label = station_name_parts(pos, level_id, level_name)
+    local label = smart_label and string.format("%s - %s", level_label, smart_label) or level_label
+
+    local block = string.format([[
+captured endpoint:
+{
+    label = %s,
+    level = %s,
+    level_id = %s,
+    level_label = %s,
+    smart_label = %s,
+    pos = %s,
+    lvid = %s,
+    gvid = %s,
+    direction = %s,
+}]],
+        lua_string_or_nil(label),
+        lua_string_or_nil(level_name),
+        tostring(level_id or "nil"),
+        lua_string_or_nil(level_label),
+        lua_string_or_nil(smart_label),
+        format_vector(pos),
+        tostring(lvid or "nil"),
+        tostring(gvid or "nil"),
+        format_vector(direction)
+    )
+
+    write_capture_block(block)
+    send_news("st_compass_news_captured", tostring(label))
+end
+
+local function on_before_key_press(dik, bind, dis, flags)
+    if not state.config.capture_locations then
+        return
+    end
+
+    local key = type(dik) == "number" and dik or tonumber(dik)
+    if key == state.config.capture_key then
+        capture_location()
+    end
+end
+
+local function teleport_actor_local(endpoint, pos, reason, from_level, is_failure)
+    local actor = db and db.actor
+    if not actor then
+        log_info("local teleport blocked: db.actor is nil")
+        send_news("st_compass_news_local_actor_unavailable")
+        return false
+    end
+
+    log_info(
+        "local teleport requested: reason=%s from=%s target=%s pos=%s",
+        tostring(reason),
+        tostring(from_level),
+        endpoint.label,
+        format_vector(pos)
+    )
+    if is_failure then
+        send_news("st_compass_news_signal_misalignment")
+    else
+        send_news("st_compass_news_shifting_locally", tostring(endpoint.label))
+    end
+
+    local ok, result = pcall(function()
+        actor:set_actor_position(pos)
+    end)
+
+    if not ok then
+        log_info("local teleport failed: %s", tostring(result))
+        send_news("st_compass_news_local_failed")
+        return false
+    end
+
+    log_info("local teleport completed: target=%s", endpoint.label)
+    return true
+end
+
+local function play_teleport_effect(reason)
+    if not level or not level.add_pp_effector then
+        log_info("teleport effect skipped: level.add_pp_effector unavailable reason=%s", tostring(reason))
+        return false
+    end
+
+    local ok, err = pcall(level.add_pp_effector, TELEPORT_EFFECT, TELEPORT_EFFECT_ID, false)
+    if not ok then
+        log_info("teleport effect failed: reason=%s effect=%s error=%s", tostring(reason), TELEPORT_EFFECT, tostring(err))
+        return false
+    end
+
+    log_info("teleport effect played: reason=%s effect=%s id=%s", tostring(reason), TELEPORT_EFFECT, tostring(TELEPORT_EFFECT_ID))
+    return true
+end
+
+local function arm_arrival_effect(reason, endpoint)
+    state.pending_arrival_effect = {
+        reason = reason,
+        target = endpoint and endpoint.label or nil,
+    }
+
+    log_info(
+        "arrival effect armed: reason=%s target=%s effect=%s id=%s",
+        tostring(reason),
+        tostring(endpoint and endpoint.label),
+        ARRIVAL_EFFECT,
+        tostring(ARRIVAL_EFFECT_ID)
+    )
+end
+
+local function play_pending_arrival_effect()
+    local pending = state.pending_arrival_effect
+    if not pending then
+        return false
+    end
+
+    state.pending_arrival_effect = nil
+
+    if not level or not level.add_pp_effector then
+        log_info("arrival effect skipped: level.add_pp_effector unavailable reason=%s", tostring(pending.reason))
+        return false
+    end
+
+    local ok, err = pcall(level.add_pp_effector, ARRIVAL_EFFECT, ARRIVAL_EFFECT_ID, false)
+    if not ok then
+        log_info("arrival effect failed: reason=%s effect=%s error=%s", tostring(pending.reason), ARRIVAL_EFFECT, tostring(err))
+        return false
+    end
+
+    log_info(
+        "arrival effect played: reason=%s target=%s effect=%s id=%s",
+        tostring(pending.reason),
+        tostring(pending.target),
+        ARRIVAL_EFFECT,
+        tostring(ARRIVAL_EFFECT_ID)
+    )
+    return true
+end
+
+local function schedule_teleport_action(reason, action)
+    if not CreateTimeEvent or TELEPORT_TRAVEL_DELAY <= 0 then
+        log_info("teleport action executing immediately: reason=%s", tostring(reason))
+        action()
+        return true
+    end
+
+    local event_id = string.format(
+        "travel_%d",
+        math.floor(os.clock() * 1000)
+    )
+
+    local ok, err = pcall(CreateTimeEvent, "compass_teleport", event_id, TELEPORT_TRAVEL_DELAY, function()
+        action()
+        return true
+    end)
+
+    if not ok then
+        log_info("teleport action schedule failed: reason=%s error=%s", tostring(reason), tostring(err))
+        action()
+        return true
+    end
+
+    log_info(
+        "teleport action scheduled: reason=%s delay=%.2fs event=%s",
+        tostring(reason),
+        TELEPORT_TRAVEL_DELAY,
+        event_id
+    )
+    return true
+end
+
+local function teleport_to(endpoint, reason, sound_source_id, is_failure)
+    local now = os.clock()
+    if now - state.last_teleport_clock < TELEPORT_COOLDOWN then
+        log_info(
+            "teleport ignored by cooldown: reason=%s remaining=%.2fs",
+            tostring(reason),
+            TELEPORT_COOLDOWN - (now - state.last_teleport_clock)
+        )
+        return false
+    end
+
+    init_logger()
+
+    local valid, err = validate_endpoint(endpoint)
+    if not valid then
+        log_info("teleport blocked: %s", err)
+        send_news("st_compass_news_teleport_blocked", tostring(err))
+        return false
+    end
+
+    local from_level = current_level_name()
+    local pos = make_vector(endpoint.pos)
+    local angle = vector():set(0, 0, 0)
+
+    if from_level ~= endpoint.level and not ChangeLevel then
+        log_info("teleport blocked: ChangeLevel is unavailable")
+        send_news("st_compass_news_change_level_unavailable")
+        return false
+    end
+
+    state.last_teleport_clock = now
+    play_teleport_effect(reason)
+
+    if from_level == endpoint.level then
+        if sound_source_id then
+            play_activation_sound(sound_source_id, "local-teleport", is_failure)
+        end
+        return schedule_teleport_action(reason, function()
+            teleport_actor_local(endpoint, pos, reason, from_level, is_failure)
+        end)
+    end
+
+    if sound_source_id then
+        play_activation_sound(sound_source_id, "level-teleport", is_failure)
+    end
+
+    log_info(
+        "level teleport requested: reason=%s from=%s target=%s level=%s pos=%s lvid=%s gvid=%s",
+        tostring(reason),
+        tostring(from_level),
+        endpoint.label,
+        endpoint.level,
+        format_vector(pos),
+        tostring(endpoint.lvid),
+        tostring(endpoint.gvid)
+    )
+    if is_failure then
+        send_news("st_compass_news_signal_misalignment")
+    else
+        send_news("st_compass_news_activating_station", tostring(endpoint.label))
+    end
+
+    return schedule_teleport_action(reason, function()
+        arm_arrival_effect(reason, endpoint)
+        local ok, result = pcall(ChangeLevel, pos, endpoint.lvid, endpoint.gvid, angle, false)
+        if not ok then
+            state.pending_arrival_effect = nil
+            log_info("teleport failed: %s", tostring(result))
+            send_news("st_compass_news_teleport_failed")
+        end
+    end)
+end
+
+local function sorted_station_options(source_id)
+    prune_missing_stations("selector")
+
+    local source_key = station_key(source_id)
+    local source_station = state.stations[source_key]
+    local now = game_seconds()
+    local out = {}
+
+    for key, station in pairs(state.stations) do
+        if key ~= source_key then
+            refresh_station_labels(station)
+            local valid, err = validate_endpoint(station_to_endpoint(station))
+            if valid then
+                local calibration = station_calibration_info(station, now)
+                local failure_chance, source_ready, target_ready = effective_failure_chance(source_station, station)
+                local success_chance = success_chance_from_failure(failure_chance)
+                out[#out + 1] = {
+                    id = station.id,
+                    label = station.label,
+                    level_label = station.level_label,
+                    smart_label = station.smart_label,
+                    level = station.level,
+                    calibration_ready = calibration.ready,
+                    calibration_remaining = calibration.remaining,
+                    calibration_ready_at = calibration.ready_at,
+                    calibration_text = calibration_status_text(calibration),
+                    failure_chance = failure_chance,
+                    success_chance = success_chance,
+                    source_calibration_ready = source_ready,
+                    target_calibration_ready = target_ready,
+                }
+            else
+                log_info("station hidden from selector: id=%s reason=%s", tostring(station.id), tostring(err))
+            end
+        end
+    end
+
+    table.sort(out, function(a, b)
+        return tostring(a.label) < tostring(b.label)
+    end)
+
+    return out
+end
+
+function get_destination_options(source_id)
+    return sorted_station_options(source_id)
+end
+
+function get_station_calibration_status(obj_id)
+    local station = state.stations[station_key(obj_id)]
+    if not station then
+        return {
+            ready = true,
+            text = "",
+            remaining = 0,
+        }
+    end
+
+    local calibration = station_calibration_info(station)
+    return {
+        ready = calibration.ready,
+        text = calibration_status_text(calibration),
+        remaining = calibration.remaining,
+        ready_at = calibration.ready_at,
+    }
+end
+
+function teleport_to_station(source_id, dest_id)
+    prune_missing_stations("teleport")
+
+    local source = state.stations[station_key(source_id)]
+    if not source then
+        source = register_station(source_id, "teleport-source")
+    end
+
+    local target = state.stations[station_key(dest_id)]
+    if not target then
+        log_info("station teleport blocked: missing destination id=%s", tostring(dest_id))
+        send_news("st_compass_news_destination_unavailable")
+        return
+    end
+
+    local endpoint = station_to_endpoint(target)
+    local source_label = source and source.label or tostring(source_id)
+    local target_label = target and target.label or tostring(dest_id)
+    local reason = string.format("station %s -> %s", tostring(source_id), tostring(dest_id))
+    local is_failure = false
+    local failure_chance, source_ready, target_ready = effective_failure_chance(source, target)
+
+    init_logger()
+
+    local failed_roll, roll_value, roll_chance = roll_failure(failure_chance)
+    local log_failed_activation = false
+    local rerouted_label = nil
+    if failed_roll then
+        local failure = random_failure_destination()
+        if failure then
+            endpoint = failure
+            reason = reason .. " failure"
+            is_failure = true
+            log_failed_activation = true
+            rerouted_label = failure.label
+        end
+    end
+
+    local started = teleport_to(endpoint, reason, source_id, is_failure)
+    if not started then
+        return
+    end
+
+    if log_failed_activation then
+        log_activation(
+            "station activation failure: source=%s intended=%s rerouted=%s chance=%.2f roll=%.2f success=%.2f source_calibrated=%s destination_calibrated=%s",
+            tostring(source_label),
+            tostring(target_label),
+            tostring(rerouted_label),
+            roll_chance,
+            roll_value,
+            success_chance_from_failure(roll_chance),
+            tostring(source_ready),
+            tostring(target_ready)
+        )
+    else
+        log_activation(
+            "station activation success: source=%s destination=%s chance=%.2f roll=%.2f success=%.2f source_calibrated=%s destination_calibrated=%s",
+            tostring(source_label),
+            tostring(target_label),
+            roll_chance,
+            roll_value,
+            success_chance_from_failure(roll_chance),
+            tostring(source_ready),
+            tostring(target_ready)
+        )
+    end
+end
+
+function compass_on_actor_first_update()
+    sync_config()
+    play_pending_arrival_effect()
+end
+
+function activate_station(obj_id)
+    prune_missing_stations("interaction-limit")
+    if is_station_limit_reject_pending(obj_id) or is_new_station_over_limit(obj_id) then
+        reject_station_limit(obj_id)
+        return
+    end
+
+    register_station(obj_id, "interaction")
+
+    local obj = object_by_id_safe(obj_id)
+    local section = object_section(obj)
+    local level_name = current_level_name()
+    local obj_pos = obj and safe_value("station.position", function()
+        return obj:position()
+    end)
+    local actor_pos = db and db.actor and safe_value("actor.position", function()
+        return db.actor:position()
+    end)
+
+    log_info(
+        "HF station interaction: id=%s section=%s level=%s station_pos=%s actor_pos=%s",
+        tostring(obj_id),
+        tostring(section),
+        tostring(level_name),
+        format_vector(obj_pos),
+        format_vector(actor_pos)
+    )
+
+    update_station_interaction_data(obj_id, level_name, obj_pos)
+
+    local destinations = get_destination_options(obj_id)
+    if #destinations == 0 then
+        log_info("station interaction has no destinations: id=%s", tostring(obj_id))
+        send_news("st_compass_news_no_other_stations")
+        return
+    end
+
+    if ui_compass_station and ui_compass_station.start_dialog then
+        ui_compass_station.start_dialog(obj_id)
+    else
+        log_info("station selector UI unavailable")
+        send_news("st_compass_news_selector_unavailable")
+    end
+end
+
+function station_bound(obj_id)
+    prune_missing_stations("bound-limit")
+    if is_station_limit_reject_pending(obj_id) or is_new_station_over_limit(obj_id) then
+        reject_station_limit(obj_id)
+        return
+    end
+
+    register_station(obj_id, "bound")
+    local obj = object_by_id_safe(obj_id)
+    log_info(
+        "HF station bound: id=%s section=%s pos=%s",
+        tostring(obj_id),
+        tostring(object_section(obj)),
+        format_vector(obj and safe_value("station.position", function()
+            return obj:position()
+        end))
+    )
+end
+
+function station_first_update(obj_id)
+    prune_missing_stations("first-update-limit")
+    if is_station_limit_reject_pending(obj_id) or is_new_station_over_limit(obj_id) then
+        reject_station_limit(obj_id)
+        return
+    end
+
+    register_station(obj_id, "first-update")
+    local obj = object_by_id_safe(obj_id)
+    log_info(
+        "HF station first update: id=%s section=%s pos=%s",
+        tostring(obj_id),
+        tostring(object_section(obj)),
+        format_vector(obj and safe_value("station.position", function()
+            return obj:position()
+        end))
+    )
+end
+
+function station_destroyed(obj_id)
+    log_info("HF station destroyed: id=%s", tostring(obj_id))
+end
+
+function station_picked_up(obj_id)
+    log_info("HF station pickup: id=%s", tostring(obj_id))
+    remove_station(obj_id, "hf-pickup")
+    delete_station_hf_data(obj_id)
+end
+
+function compass_hf_on_furniture_place(obj_id)
+    local obj = object_by_id_safe(obj_id)
+    local client_section = object_section(obj)
+    local server_section = server_object_section(obj_id)
+    local section = client_section or server_section
+
+    prune_missing_stations("place-limit")
+
+    if section and section ~= STATION_SECTION then
+        return
+    end
+
+    if not section then
+        return
+    end
+
+    if is_new_station_over_limit(obj_id) then
+        mark_station_limit_reject(obj_id, "hf-place")
+        if obj then
+            reject_station_limit(obj_id)
+        end
+        return
+    end
+
+    if not obj then
+        return
+    end
+
+    register_station(obj_id, "hf-place")
+    log_info("HF furniture place callback: id=%s", tostring(obj_id))
+end
+
+function compass_hf_on_before_furniture_release(obj_id)
+    if not is_known_compass_station_id(obj_id) then
+        return
+    end
+
+    log_info("HF furniture release callback: id=%s", tostring(obj_id))
+    remove_station(obj_id, "hf-release")
+end
+
+function compass_on_option_change()
+    sync_config()
+end
+
+function save_state(data)
+    if not data then
+        return
+    end
+
+    data.compass_data = {
+        stations = state.stations,
+        config = state.config,
+        pending_arrival_effect = state.pending_arrival_effect,
+    }
+end
+
+function load_state(data)
+    local loaded = data and data.compass_data
+    state.stations = (loaded and loaded.stations) or {}
+    state.pending_station_limit_reject = {}
+    state.station_limit_rejected_at = {}
+    state.config = (loaded and loaded.config) or state.config or {}
+    state.pending_arrival_effect = loaded and loaded.pending_arrival_effect or nil
+    state.config.failure_chance = state.config.failure_chance or DEFAULT_FAILURE_CHANCE
+    state.config.calibration_hours = state.config.calibration_hours or DEFAULT_CALIBRATION_HOURS
+    state.config.uncalibrated_one_failure_chance = state.config.uncalibrated_one_failure_chance or DEFAULT_UNCALIBRATED_ONE_FAILURE_CHANCE
+    state.config.uncalibrated_both_failure_chance = state.config.uncalibrated_both_failure_chance or DEFAULT_UNCALIBRATED_BOTH_FAILURE_CHANCE
+    state.config.capture_locations = state.config.capture_locations or DEFAULT_CAPTURE_LOCATIONS
+    state.config.capture_key = state.config.capture_key or DEFAULT_CAPTURE_KEY
+
+    log_info(
+        "state loaded: stations=%s failure_chance=%s calibration_hours=%s",
+        tostring(station_count()),
+        tostring(state.config.failure_chance),
+        tostring(state.config.calibration_hours)
+    )
+end
+
+function on_game_start()
+    log_info("registering station callbacks")
+
+    RegisterScriptCallback("actor_on_first_update", compass_on_actor_first_update)
+    RegisterScriptCallback("on_option_change", compass_on_option_change)
+    RegisterScriptCallback("save_state", save_state)
+    RegisterScriptCallback("load_state", load_state)
+    RegisterScriptCallback("on_before_key_press", on_before_key_press)
+
+    if placeable_furniture then
+        RegisterScriptCallback("hf_on_furniture_place", compass_hf_on_furniture_place)
+        RegisterScriptCallback("hf_on_before_furniture_release", compass_hf_on_before_furniture_release)
+        log_info("Hideout Furniture callbacks registered")
+    else
+        log_info("Hideout Furniture globals not present at on_game_start")
+    end
+end

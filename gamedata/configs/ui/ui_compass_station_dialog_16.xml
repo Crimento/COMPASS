@@ -1,0 +1,98 @@
+<w>
+    <background x="300" y="210" width="424" height="348" stretch="1">
+        <texture>ui_inGame2_hint_wnd_main_window</texture>
+    </background>
+
+    <title x="22" y="24" width="380" height="28" stretch="1" complex_desc="0">
+        <text font="letterica18" complex_mode="1" align="c" vert_align="c"/>
+    </title>
+
+    <status x="22" y="56" width="380" height="24" stretch="1" complex_desc="0">
+        <text font="letterica18" complex_mode="1" align="c" vert_align="c"/>
+    </status>
+
+    <source_calibration x="22" y="80" width="380" height="20" stretch="1" complex_desc="0">
+        <text font="letterica16" complex_mode="1" align="c" vert_align="c"/>
+    </source_calibration>
+
+    <txt_header_location x="52" y="100" width="106" height="20" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="170" g="170" b="170"/>
+    </txt_header_location>
+    <txt_header_sublocation x="166" y="100" width="154" height="20" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="170" g="170" b="170"/>
+    </txt_header_sublocation>
+    <txt_header_success x="306" y="100" width="68" height="20" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="170" g="170" b="170"/>
+    </txt_header_success>
+
+    <btn_dest_1 x="42" y="120" width="340" height="30" check_mode="0" stretch="1">
+        <window_name>button_dest_1</window_name>
+        <texture>ui_button_ordinary</texture>
+    </btn_dest_1>
+    <txt_dest_level_1 x="52" y="120" width="106" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="100" g="145" b="255"/>
+    </txt_dest_level_1>
+    <txt_dest_smart_1 x="166" y="120" width="154" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="235" g="235" b="235"/>
+    </txt_dest_smart_1>
+    <txt_dest_chance_1 x="326" y="120" width="48" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="90" g="220" b="120"/>
+    </txt_dest_chance_1>
+    <btn_dest_2 x="42" y="154" width="340" height="30" check_mode="0" stretch="1">
+        <window_name>button_dest_2</window_name>
+        <texture>ui_button_ordinary</texture>
+    </btn_dest_2>
+    <txt_dest_level_2 x="52" y="154" width="106" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="100" g="145" b="255"/>
+    </txt_dest_level_2>
+    <txt_dest_smart_2 x="166" y="154" width="154" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="235" g="235" b="235"/>
+    </txt_dest_smart_2>
+    <txt_dest_chance_2 x="326" y="154" width="48" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="90" g="220" b="120"/>
+    </txt_dest_chance_2>
+    <btn_dest_3 x="42" y="188" width="340" height="30" check_mode="0" stretch="1">
+        <window_name>button_dest_3</window_name>
+        <texture>ui_button_ordinary</texture>
+    </btn_dest_3>
+    <txt_dest_level_3 x="52" y="188" width="106" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="100" g="145" b="255"/>
+    </txt_dest_level_3>
+    <txt_dest_smart_3 x="166" y="188" width="154" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="235" g="235" b="235"/>
+    </txt_dest_smart_3>
+    <txt_dest_chance_3 x="326" y="188" width="48" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="90" g="220" b="120"/>
+    </txt_dest_chance_3>
+    <btn_dest_4 x="42" y="222" width="340" height="30" check_mode="0" stretch="1">
+        <window_name>button_dest_4</window_name>
+        <texture>ui_button_ordinary</texture>
+    </btn_dest_4>
+    <txt_dest_level_4 x="52" y="222" width="106" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="100" g="145" b="255"/>
+    </txt_dest_level_4>
+    <txt_dest_smart_4 x="166" y="222" width="154" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="235" g="235" b="235"/>
+    </txt_dest_smart_4>
+    <txt_dest_chance_4 x="326" y="222" width="48" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="90" g="220" b="120"/>
+    </txt_dest_chance_4>
+    <btn_dest_5 x="42" y="256" width="340" height="30" check_mode="0" stretch="1">
+        <window_name>button_dest_5</window_name>
+        <texture>ui_button_ordinary</texture>
+    </btn_dest_5>
+    <txt_dest_level_5 x="52" y="256" width="106" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="100" g="145" b="255"/>
+    </txt_dest_level_5>
+    <txt_dest_smart_5 x="166" y="256" width="154" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="l" vert_align="c" r="235" g="235" b="235"/>
+    </txt_dest_smart_5>
+    <txt_dest_chance_5 x="326" y="256" width="48" height="30" stretch="1" complex_desc="0">
+        <text font="letterica16" align="r" vert_align="c" r="90" g="220" b="120"/>
+    </txt_dest_chance_5>
+    <btn_close x="162" y="306" width="101" height="28" check_mode="0" stretch="1">
+        <window_name>button_close</window_name>
+        <text font="letterica18">st_close</text>
+        <texture>ui_button_ordinary</texture>
+    </btn_close>
+</w>

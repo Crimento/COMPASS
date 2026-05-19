@@ -1,0 +1,16 @@
+function on_mcm_load()
+    local op = {
+        id = "compass",
+        sh = true,
+        gr = {
+            { id = "failure_chance", type = "track", val = 2, min = 0, max = 100, step = 1, def = 10 },
+            { id = "calibration_hours", type = "track", val = 2, min = 0, max = 168, step = 0.5, def = 4 },
+            { id = "uncalibrated_one_failure_chance", type = "track", val = 2, min = 0, max = 100, step = 1, def = 25 },
+            { id = "uncalibrated_both_failure_chance", type = "track", val = 2, min = 0, max = 100, step = 1, def = 75 },
+            { id = "capture_locations", type = "check", val = 1, def = false },
+            { id = "capture_key", type = "key_bind", val = 2, def = DIK_keys and DIK_keys.DIK_F6 or 64 },
+        },
+    }
+
+    return op
+end

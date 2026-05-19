@@ -1,0 +1,41 @@
+class "compass_station_wrapper" (bind_hf_base.hf_binder_wrapper)
+
+function compass_station_wrapper:__init(obj)
+    super(obj)
+
+    self.first_update = true
+    if compass and compass.station_bound then
+        compass.station_bound(obj:id())
+    end
+end
+
+function compass_station_wrapper:update(delta)
+    bind_hf_base.hf_binder_wrapper.update(self, delta)
+
+    if self.first_update then
+        self.first_update = false
+        if compass and compass.station_first_update then
+            compass.station_first_update(self.object:id())
+        end
+    end
+end
+
+function compass_station_wrapper:pickup()
+    if compass and compass.station_picked_up then
+        compass.station_picked_up(self.object:id())
+    end
+
+    return bind_hf_base.hf_binder_wrapper.pickup(self)
+end
+
+function compass_station_wrapper:net_destroy()
+    if compass and compass.station_destroyed then
+        compass.station_destroyed(self.object:id())
+    end
+
+    bind_hf_base.hf_binder_wrapper.net_destroy(self)
+end
+
+function init(obj)
+    obj:bind_object(compass_station_wrapper(obj).binder)
+end
