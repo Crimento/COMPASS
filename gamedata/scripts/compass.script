@@ -356,6 +356,14 @@ local FAILURE_DESTINATIONS = {
         lvid = 47011,
         gvid = 1707,
     },
+    {
+        label = "Limansk",
+        level = "l10_limansk",
+        level_id = 12,
+        pos = { -13.9973, 2.8704, -148.5716 },
+        lvid = 19518,
+        gvid = 2434,
+    },
 }
 
 local logger = nil
