@@ -78,44 +78,44 @@
     <string id="st_compass_news_selector_unavailable">
         <text>Critical error: UI is not available</text>
     </string>
-    <string id="ui_mcm_menu_compass">
+    <string id="ui_mcm_menu_compass_tp">
         <text>C.O.M.P.A.S.S</text>
     </string>
-    <string id="ui_mcm_compass_failure_chance">
+    <string id="ui_mcm_compass_tp_failure_chance">
         <text>Teleport failure chance</text>
     </string>
-    <string id="ui_mcm_compass_failure_chance_desc">
+    <string id="ui_mcm_compass_tp_failure_chance_desc">
         <text>Percentage chance that station travel sends the actor to an unexpected destination.</text>
     </string>
-    <string id="ui_mcm_compass_calibration_hours">
+    <string id="ui_mcm_compass_tp_calibration_hours">
         <text>Calibration time</text>
     </string>
-    <string id="ui_mcm_compass_calibration_hours_desc">
+    <string id="ui_mcm_compass_tp_calibration_hours_desc">
         <text>In-game hours after placement before a station is fully calibrated.</text>
     </string>
-    <string id="ui_mcm_compass_uncalibrated_one_failure_chance">
+    <string id="ui_mcm_compass_tp_uncalibrated_one_failure_chance">
         <text>One station uncalibrated failure chance</text>
     </string>
-    <string id="ui_mcm_compass_uncalibrated_one_failure_chance_desc">
+    <string id="ui_mcm_compass_tp_uncalibrated_one_failure_chance_desc">
         <text>Failure chance when one of the stations is still calibrating.</text>
     </string>
-    <string id="ui_mcm_compass_uncalibrated_both_failure_chance">
+    <string id="ui_mcm_compass_tp_uncalibrated_both_failure_chance">
         <text>Both stations uncalibrated failure chance</text>
     </string>
-    <string id="ui_mcm_compass_uncalibrated_both_failure_chance_desc">
+    <string id="ui_mcm_compass_tp_uncalibrated_both_failure_chance_desc">
         <text>Failure chance when both stations are still calibrating.</text>
     </string>
-    <string id="ui_mcm_compass_capture_locations">
+    <string id="ui_mcm_compass_tp_capture_locations">
         <text>[DEBUG] Enable location capture</text>
     </string>
-    <string id="ui_mcm_compass_capture_locations_desc">
+    <string id="ui_mcm_compass_tp_capture_locations_desc">
         <text>Enables a maintenance hotkey that writes the actor's current endpoint data to
             compass.log.</text>
     </string>
-    <string id="ui_mcm_compass_capture_key">
+    <string id="ui_mcm_compass_tp_capture_key">
         <text>[DEBUG] Location capture key</text>
     </string>
-    <string id="ui_mcm_compass_capture_key_desc">
+    <string id="ui_mcm_compass_tp_capture_key_desc">
         <text>Hotkey used by the location capture tool when location capture is enabled.</text>
     </string>
 </string_table>

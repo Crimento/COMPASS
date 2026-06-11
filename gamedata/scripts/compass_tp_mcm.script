@@ -1,6 +1,6 @@
 function on_mcm_load()
     local op = {
-        id = "compass",
+        id = "compass_tp",
         sh = true,
         gr = {
             { id = "failure_chance", type = "track", val = 2, min = 0, max = 100, step = 1, def = 10 },
