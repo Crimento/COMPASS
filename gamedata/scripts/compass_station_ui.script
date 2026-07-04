@@ -119,7 +119,7 @@ end
 
 function UICompassStation:Initialize(source_id)
     self.source_id = source_id
-    self.destinations = compass.get_destination_options(source_id) or {}
+    self.destinations = compass_station.get_destination_options(source_id) or {}
 
     set_text(self.title, gc("st_compass_station"))
 
@@ -136,7 +136,7 @@ function UICompassStation:Initialize(source_id)
     set_label_visible(self.header_labels.sublocation, #self.destinations > 0)
     set_label_visible(self.header_labels.success, #self.destinations > 0)
 
-    local source_status = compass.get_station_calibration_status and compass.get_station_calibration_status(source_id) or nil
+    local source_status = compass_station.get_station_calibration_status and compass_station.get_station_calibration_status(source_id) or nil
     if source_status and source_status.text and source_status.text ~= "" then
         set_text(self.source_calibration, source_status.text)
         set_text_color(self.source_calibration, source_status.ready and COLOR_CALIBRATED or COLOR_CALIBRATING)
@@ -185,7 +185,7 @@ end
 function UICompassStation:Select(index)
     local dest = self.destinations[index]
     if dest then
-        compass.teleport_to_station(self.source_id, dest.id)
+        compass_station.teleport_to_station(self.source_id, dest.id)
     end
 
     self:Close()

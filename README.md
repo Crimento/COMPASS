@@ -14,7 +14,7 @@ Expected tree:
 C.O.M.P.A.S.S/
   gamedata/
     scripts/
-      compass.script
+      compass_station.script
 ```
 
 ## Requirements

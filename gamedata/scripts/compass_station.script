@@ -1384,32 +1384,32 @@ local function sync_config()
     local capture_key = DEFAULT_CAPTURE_KEY
 
     if ui_mcm then
-        local ok, mcm_failure = pcall(ui_mcm.get, "compass/failure_chance")
+        local ok, mcm_failure = pcall(ui_mcm.get, "compass_station/failure_chance")
         if ok and mcm_failure ~= nil then
             failure = tonumber(mcm_failure) or failure
         end
 
-        local ok_calibration, mcm_calibration = pcall(ui_mcm.get, "compass/calibration_hours")
+        local ok_calibration, mcm_calibration = pcall(ui_mcm.get, "compass_station/calibration_hours")
         if ok_calibration and mcm_calibration ~= nil then
             calibration_hours = tonumber(mcm_calibration) or calibration_hours
         end
 
-        local ok_one, mcm_one = pcall(ui_mcm.get, "compass/uncalibrated_one_failure_chance")
+        local ok_one, mcm_one = pcall(ui_mcm.get, "compass_station/uncalibrated_one_failure_chance")
         if ok_one and mcm_one ~= nil then
             uncalibrated_one = tonumber(mcm_one) or uncalibrated_one
         end
 
-        local ok_both, mcm_both = pcall(ui_mcm.get, "compass/uncalibrated_both_failure_chance")
+        local ok_both, mcm_both = pcall(ui_mcm.get, "compass_station/uncalibrated_both_failure_chance")
         if ok_both and mcm_both ~= nil then
             uncalibrated_both = tonumber(mcm_both) or uncalibrated_both
         end
 
-        local ok_capture, mcm_capture = pcall(ui_mcm.get, "compass/capture_locations")
+        local ok_capture, mcm_capture = pcall(ui_mcm.get, "compass_station/capture_locations")
         if ok_capture then
             capture_locations = config_bool(mcm_capture, capture_locations)
         end
 
-        local ok_key, mcm_key = pcall(ui_mcm.get, "compass/capture_key")
+        local ok_key, mcm_key = pcall(ui_mcm.get, "compass_station/capture_key")
         if ok_key and mcm_key ~= nil then
             capture_key = tonumber(mcm_key) or capture_key
         end
@@ -1962,8 +1962,8 @@ function activate_station(obj_id)
         return
     end
 
-    if ui_compass_station and ui_compass_station.start_dialog then
-        ui_compass_station.start_dialog(obj_id)
+    if compass_station_ui and compass_station_ui.start_dialog then
+        compass_station_ui.start_dialog(obj_id)
     else
         log_info("station selector UI unavailable")
         send_news("st_compass_news_selector_unavailable")

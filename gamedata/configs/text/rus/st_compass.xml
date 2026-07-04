@@ -78,43 +78,43 @@
     <string id="st_compass_news_selector_unavailable">
         <text>����������� ������! �� ������� ��������� ��������� �������</text>
     </string>
-    <string id="ui_mcm_menu_compass_tp">
+    <string id="ui_mcm_menu_compass_station">
         <text>C.O.M.P.A.S.S</text>
     </string>
-    <string id="ui_mcm_compass_tp_failure_chance">
+    <string id="ui_mcm_compass_station_failure_chance">
         <text>���� ���� ���������</text>
     </string>
-    <string id="ui_mcm_compass_tp_failure_chance_desc">
+    <string id="ui_mcm_compass_station_failure_chance_desc">
         <text>���������� ���� �������� �� ����� ������������.</text>
     </string>
-    <string id="ui_mcm_compass_tp_calibration_hours">
+    <string id="ui_mcm_compass_station_calibration_hours">
         <text>����� �� ���������� (�)</text>
     </string>
-    <string id="ui_mcm_compass_tp_calibration_hours_desc">
+    <string id="ui_mcm_compass_station_calibration_hours_desc">
         <text>������������� ����� � ����� �� ����, ��� ������� ������ ����������.</text>
     </string>
-    <string id="ui_mcm_compass_tp_uncalibrated_one_failure_chance">
+    <string id="ui_mcm_compass_station_uncalibrated_one_failure_chance">
         <text>���� �������� � ����� ������������� ��������</text>
     </string>
-    <string id="ui_mcm_compass_tp_uncalibrated_one_failure_chance_desc">
+    <string id="ui_mcm_compass_station_uncalibrated_one_failure_chance_desc">
         <text>���� �� ��������� ��������, ���� ������ ���� �� ������� �������������.</text>
     </string>
-    <string id="ui_mcm_compass_tp_uncalibrated_both_failure_chance">
+    <string id="ui_mcm_compass_station_uncalibrated_both_failure_chance">
         <text>���� �������� � ������ ���������������� ���������</text>
     </string>
-    <string id="ui_mcm_compass_tp_uncalibrated_both_failure_chance_desc">
+    <string id="ui_mcm_compass_station_uncalibrated_both_failure_chance_desc">
         <text>���� �� ��������� ��������� ���� ��� ������� ��� �� ��������� ����������.</text>
     </string>
-    <string id="ui_mcm_compass_tp_capture_locations">
+    <string id="ui_mcm_compass_station_capture_locations">
         <text>[DEBUG] ���������� �������</text>
     </string>
-    <string id="ui_mcm_compass_tp_capture_locations_desc">
+    <string id="ui_mcm_compass_station_capture_locations_desc">
         <text>�������� ������ ��� ���������� ��������� � compass.log.</text>
     </string>
-    <string id="ui_mcm_compass_tp_capture_key">
+    <string id="ui_mcm_compass_station_capture_key">
         <text>[DEBUG] ������ ���������� �������</text>
     </string>
-    <string id="ui_mcm_compass_tp_capture_key_desc">
+    <string id="ui_mcm_compass_station_capture_key_desc">
         <text>������ ��� ������� ������� � ������ ���� ���������� ������� ��������.</text>
     </string>
 </string_table>
