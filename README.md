@@ -23,7 +23,7 @@ This mod was created for the G.A.M.M.A modpack.
 
 It has not been tested with vanilla Anomaly, but should work with the required dependencies installed:
 
-- [xlibs](https://www.moddb.com/mods/stalker-anomaly/addons/xlibs-1001) by @damiansirbu-stalker for logging, messaging, and location name detection
+- [xlibs](https://www.moddb.com/mods/stalker-anomaly/addons/xlibs-1001) by @damiansirbu-stalker, 1.10.0 or newer, for logging, messaging, and location name detection
 - [Hideout Furniture](https://www.moddb.com/mods/stalker-anomaly/addons/hideout-furniture-hf) by @Aoldri for the placeable objects framework
 - [Expanded/Fixed Maps All In One](https://www.moddb.com/mods/stalker-anomaly/addons/expandedfixed-maps-all-in-one) by HailTheMonolith for several teleport failure locations
 

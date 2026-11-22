@@ -754,9 +754,9 @@ local function station_count_excluding(obj_id)
 end
 
 local function game_seconds()
-    if xtime and xtime.game_sec then
+    if xtime and xtime.get_game_sec then
         local value = optional_value(function()
-            return xtime.game_sec()
+            return xtime.get_game_sec()
         end)
 
         if type(value) == "number" then
@@ -874,9 +874,9 @@ local function read_level_id(obj_id)
     end)
 
     if not se_obj then
-        if xlevel.get_actor_level_id then
-            return safe_value("xlevel.get_actor_level_id", function()
-                return xlevel.get_actor_level_id()
+        if xlevel.get_actor_level then
+            return safe_value("xlevel.get_actor_level", function()
+                return xlevel.get_actor_level()
             end)
         end
 
@@ -941,7 +941,7 @@ local function strip_smart_level_prefix(smart_name, level_label)
 end
 
 local function smart_display_name(pos, level_id, level_label)
-    if not xsmart or not xsmart.find_smart or not xlevel or not xlevel.get_smart_display_name or not pos or not level_id then
+    if not xsmart or not xsmart.find_smart or not xlevel or not xlevel.get_smart_name or not pos or not level_id then
         return nil
     end
 
@@ -954,8 +954,8 @@ local function smart_display_name(pos, level_id, level_label)
         return xsmart.find_smart(v, { level_id = level_id })
     end)
 
-    local name = smart and safe_value("xlevel.get_smart_display_name", function()
-        return xlevel.get_smart_display_name(smart)
+    local name = smart and safe_value("xlevel.get_smart_name", function()
+        return xlevel.get_smart_name(smart)
     end)
 
     if not name or tostring(name) == "" then
@@ -1539,8 +1539,8 @@ local function capture_location()
     local direction = safe_value("actor.direction", function()
         return actor:direction()
     end)
-    local level_id = xlevel and xlevel.get_actor_level_id and safe_value("xlevel.get_actor_level_id", function()
-        return xlevel.get_actor_level_id()
+    local level_id = xlevel and xlevel.get_actor_level and safe_value("xlevel.get_actor_level", function()
+        return xlevel.get_actor_level()
     end)
     local level_label, smart_label = station_name_parts(pos, level_id, level_name)
     local label = smart_label and string.format("%s - %s", level_label, smart_label) or level_label
